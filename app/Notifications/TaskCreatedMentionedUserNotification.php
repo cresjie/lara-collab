@@ -26,18 +26,6 @@ class TaskCreatedMentionedUserNotification extends Notification implements Shoul
     }
 
     /**
-     * Determine the notification's delivery delay.
-     *
-     * @return array<string, \Illuminate\Support\Carbon>
-     */
-    public function withDelay(object $notifiable): array
-    {
-        return [
-            'mail' => now()->addMinutes(5),
-        ];
-    }
-
-    /**
      * Determine which queues should be used for each notification channel.
      *
      * @return array<string, string>
