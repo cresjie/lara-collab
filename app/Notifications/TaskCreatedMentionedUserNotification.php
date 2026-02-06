@@ -42,12 +42,7 @@ class TaskCreatedMentionedUserNotification extends Notification implements Shoul
      */
     public function shouldSend(object $notifiable, string $channel): bool
     {
-        if ($channel === 'mail') {
-            return $notifiable
-                ->unreadNotifications()
-                ->whereJsonContains('data->id', $this->task->id)
-                ->exists();
-        }
+        
 
         return true;
     }
@@ -61,7 +56,7 @@ class TaskCreatedMentionedUserNotification extends Notification implements Shoul
             ->subject("[{$this->task->project->name}] You were mentioned in a new \"{$this->task->name}\" task")
             ->greeting("{$this->task->createdByUser->name} has mentioned you in a new \"{$this->task->name}\" task")
             ->action('Open task', route('projects.tasks.open', ['project' => $this->task->project_id, 'task' => $this->task->id]))
-            ->line($this->task->description);
+            ->line(strip_tags($this->task->description));
     }
 
     /**

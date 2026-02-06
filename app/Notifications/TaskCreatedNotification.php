@@ -42,12 +42,7 @@ class TaskCreatedNotification extends Notification implements ShouldQueue
      */
     public function shouldSend(object $notifiable, string $channel): bool
     {
-        if ($channel === 'mail') {
-            return $notifiable
-                ->unreadNotifications()
-                ->whereJsonContains('data->id', $this->task->id)
-                ->exists();
-        }
+        
 
         return true;
     }
@@ -61,7 +56,7 @@ class TaskCreatedNotification extends Notification implements ShouldQueue
             ->subject("[{$this->task->project->name}] Task {$this->task->name} was created")
             ->greeting("{$this->task->createdByUser->name} created a new task")
             ->action('Open task', route('projects.tasks.open', ['project' => $this->task->project_id, 'task' => $this->task->id]))
-            ->line($this->task->description);
+            ->line(strip_tags($this->task->description));
     }
 
     /**

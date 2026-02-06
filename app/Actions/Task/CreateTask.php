@@ -43,7 +43,15 @@ class CreateTask
                 'completed_at' => null,
             ]);
 
-            $task->subscribedUsers()->attach($data['subscribed_users'] ?? []);
+            // Attach subscribed users
+            $subscribedUsers = collect($data['subscribed_users'] ?? []);
+            
+            // Automatically subscribe the assigned user if they're not already subscribed
+            if ($data['assigned_to_user_id'] && !$subscribedUsers->contains($data['assigned_to_user_id'])) {
+                $subscribedUsers->push($data['assigned_to_user_id']);
+            }
+            
+            $task->subscribedUsers()->attach($subscribedUsers->toArray());
 
             $task->labels()->attach($data['labels'] ?? []);
 

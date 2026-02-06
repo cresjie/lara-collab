@@ -42,12 +42,7 @@ class CommentCreatedNotification extends Notification implements ShouldQueue
      */
     public function shouldSend(object $notifiable, string $channel): bool
     {
-        if ($channel === 'mail') {
-            return $notifiable
-                ->unreadNotifications()
-                ->whereJsonContains('data->id', $this->comment->id)
-                ->exists();
-        }
+        
 
         return true;
     }
@@ -60,7 +55,7 @@ class CommentCreatedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("[{$this->comment->task->project->name}] {$this->comment->user->name} commented on {$this->comment->task->name} task")
             ->greeting("{$this->comment->user->name} commented on {$this->comment->task->name} task")
-            ->line($this->comment->content)
+            ->line(strip_tags($this->comment->content))
             ->action('Open task', route('projects.tasks.open', ['project' => $this->comment->task->project_id, 'task' => $this->comment->task->id]));
     }
 
