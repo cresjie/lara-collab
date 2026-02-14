@@ -107,6 +107,59 @@ class ReportController extends Controller
         ]);
     }
 
+    public function taskDailyLoggedTime(Request $request)
+    {
+        Gate::allowIf(fn (User $user) => $user->can('view daily logged time report'));
+
+        $completed = $request->get('completed', 'true') === 'true';
+
+        $items = DB::table('time_logs')
+            ->join('tasks', 'tasks.id', '=', 'time_logs.task_id')
+            ->join('projects', 'projects.id', '=', 'tasks.project_id')
+            ->join('users', 'time_logs.user_id', '=', 'users.id')
+            ->when($request->projects, fn ($query) => $query->whereIn('projects.id', $request->projects))
+            ->when($request->users, fn ($query) => $query->whereIn('time_logs.user_id', $request->users))
+            ->when($request->dateRange,
+                function ($query) use ($request) {
+                    $query->whereBetween('time_logs.created_at', [
+                        Carbon::parse($request->dateRange[0])->startOfDay(),
+                        Carbon::parse($request->dateRange[1])->endOfDay(),
+                    ]);
+                },
+                fn ($query) => $query->where('time_logs.created_at', '>', now()->subWeek())
+            )
+            //->{$completed ? 'whereNotNull' : 'whereNull'}('tasks.completed_at')
+            ->where('billable', $request->get('billable', 'true') === 'true')
+            ->groupBy(['time_logs.user_id', 'date'])
+            ->selectRaw('
+                MAX(tasks.id) AS task_id,
+                MAX(tasks.name) AS task_name,
+                MAX(projects.id) AS project_id, MAX(projects.name) AS project_name,
+                MAX(users.id) AS user_id, MAX(users.name) AS user_name,
+                SUM(time_logs.minutes) / 60 AS total_hours, DATE_FORMAT(time_logs.created_at, "%e. %b %Y") AS date
+            ')
+            ->orderBy('date')
+            ->get();
+
+            
+        
+        return Inertia::render('Reports/TasksDailyLoggedTime', [
+            'items' => $items
+                ->groupBy('task_name')
+                ->map->groupBy('user_id'),
+            'users' => $items
+                ->unique('user_id')
+                ->mapInto(Collection::class)
+                ->map->only('user_name', 'user_id')
+                ->keyBy('user_id')
+                ->sortBy('user_name'),
+            'dropdowns' => [
+                'projects' => Project::dropdownValues(),
+                'users' => User::userDropdownValues(),
+            ],
+        ]);
+    }
+
     public function fixedPriceSum(Request $request): Response
     {
         Gate::allowIf(fn (User $user) => $user->can('view fixed price sum report'));
