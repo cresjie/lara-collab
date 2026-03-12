@@ -134,9 +134,12 @@ class ReportController extends Controller
             ->selectRaw('
                 tasks.id AS task_id,
                 tasks.name AS task_name,
-                MAX(projects.id) AS project_id, MAX(projects.name) AS project_name,
-                MAX(users.id) AS user_id, MAX(users.name) AS user_name,
-                SUM(time_logs.minutes) / 60 AS total_hours, DATE_FORMAT(time_logs.created_at, "%e. %b %Y") AS date
+                MAX(projects.id) AS project_id, 
+                MAX(projects.name) AS project_name,
+                MAX(users.id) AS user_id, 
+                MAX(users.name) AS user_name,
+                SUM(time_logs.minutes) / 60 AS total_hours, 
+                DATE_FORMAT(time_logs.created_at, "%d. %b %Y") AS date
             ')
             ->orderBy('date')
             ->get();
