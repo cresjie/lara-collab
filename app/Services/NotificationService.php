@@ -20,6 +20,8 @@ class NotificationService
             ->map(function ($notification) {
                 return [
                     ...$notification->data,
+                    'created_at' => $notification->created_at,
+                    'read_at' => $notification->read_at,
                     'id' => $notification->id,
                     'read_at' => $notification->read_at,
                 ];
